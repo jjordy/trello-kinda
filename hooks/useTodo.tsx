@@ -1,5 +1,5 @@
 import { useAtom } from "jotai";
-import todoListState, { backlog, futureTodos, todaysTodos, tomorrowsTodos } from "lib/state";
+import todoListState, { backlog, futureTodos, todaysTodos, tomorrowsTodos, reorderTodos } from "lib/state";
 import { useCallback } from "react";
 import update from "immutability-helper";
 import shortid from "shortid";
@@ -10,27 +10,32 @@ export default function useTodo() {
   const [today] = useAtom(todaysTodos);
   const [tom] = useAtom(tomorrowsTodos);
   const [future] = useAtom(futureTodos);
-  const handleMove = useCallback((dragIndex, hoverIndex) => {
-    const dragItem = todoList[dragIndex];
-    setTodoList(
-      update(todoList, {
-        $splice: [
-          [dragIndex, 1],
-          [hoverIndex, 0, dragItem],
-        ],
-      })
-    );
-  }, [todoList]);
-  const handleAddTodo = useCallback(
-    (todoItem) => {
-      setTodoList(
-        update(todoList, {
-          $push: [{  ...todoItem, id: shortid() }],
-        })
-      );
+  const [, reorder] = useAtom(reorderTodos)
+  const handleMove = useCallback(
+    (dragIndex, hoverIndex) => {
+      const id = Object.keys(todoList)[dragIndex];
+      const hover = Object.keys(todoList)[hoverIndex];
+      const dragItem = todoList[id];
+      reorder({ dragIndex, hoverIndex })
     },
     [todoList]
   );
+  const handleAddTodo = useCallback(
+    (todoItem) => {
+      const id = shortid();
+      const payload = { ...todoList, [id]: { id, ...todoItem } };
+      setTodoList(payload);
+    },
+    [todoList]
+  );
+  const handleUpdateTodo = useCallback(
+    (todoItem) => {
+      const item = todoList[todoItem.id];
+      setTodoList({ ...todoList, [todoItem.id]: { ...item, ...todoItem,  } });
+    },
+    [todoList]
+  );
+
   return {
     todoList,
     backlog: bLog,
@@ -38,6 +43,7 @@ export default function useTodo() {
     tomorrow: tom,
     future,
     handleMove,
-    handleAddTodo
+    handleAddTodo,
+    handleUpdateTodo,
   };
 }

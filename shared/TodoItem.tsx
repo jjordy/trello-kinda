@@ -90,7 +90,7 @@ export default function TodoItem({ todoItem, index, moveItem }: TodoItemProps) {
     <div
       ref={ref}
       data-handler-id={handlerId}
-      className={cn("w-full border border-gray-900 p-2", {
+      className={cn("w-full border border-dashed border-gray-900 p-4 mb-2", {
         "opacity-0": isDragging,
         "opacity-100": !isDragging,
       })}
